@@ -1,8 +1,10 @@
 #!/usr/bin/env ruby
 
 variables = {}
+line = 0
 while true do
-  print "REPL >> "
+  line += 1
+  print "REPL #{line} >> "
   input = gets.chomp
   case input
 
@@ -95,7 +97,7 @@ while true do
 	    vars=""
 	    variables.each {|x,y| vars << "#{x} = #{y};"}
 	    input.insert(0,vars)
-	    puts `ruby -e "#{input}"`
+	    puts `ruby -e "#{input}"` unless input == "puts "
 
   end 
 end
