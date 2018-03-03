@@ -6,7 +6,8 @@ while true do
   input = gets.chomp
   case input
 
-  when /\s*[a-zA-Z]\w*\s*=/ # -- assign
+  when /\s*[a-zA-Z]\w*\s*=/ # ------------------ variable declaration
+	    input.sub!(/(puts|print)\s*/,"")
 	    input = input.gsub!(/"/,"\\\"") if input =~ /"/
 	    input_arr=input.split('=')
 	    vars_arr = input_arr[0].split(%r{[,=]})
@@ -23,22 +24,22 @@ while true do
 	    input.insert(0,vars)
 	    puts `ruby -e "#{vars};puts #{input_arr[1]}"`
 
-  when "quit", "exit"
+  when "quit", "exit" # ------------------------ exit
 	    puts "good bye!"
 	    abort
-  when "pwd"
+  when "pwd" # --------------------------------- pwd
 	    puts Dir.pwd
 
-  when /ls/
+  when /ls/ # --------------------------------- list files
 	    files=Dir.entries(Dir.pwd)
 	    files.each {|file| puts "  "+file}
 	
-  when /cd/ 
+  when /cd/ # -------------------------------- change Dir
 	    input=input.split(" ")
 	    Dir.chdir(input[-1])
 	    puts "#{Dir.pwd}"
 
-  when /mkdir/ 
+  when /mkdir/ # ----------------------------  make Dir 
 	    input=input.split(" ")
 	    input.shift
 	    input.each do |dir|
@@ -46,14 +47,14 @@ while true do
 	      puts "directory #{dir} created"
             end
 
-  when /rm/
+  when /rm/ # ------------------------------ remove Dir
 	    input=input.split(" ")
 	    input.shift
 	    input.each do |dir|
 	      Dir.delete(dir)
 	      puts "removed directory #{dir}"
 	    end
-  else
+  else      # ------------------------------- any other operation
 	    input.sub!(/(puts|print)\s*/,"")
 	    input_arr = input.split(/(\+|-|\/|\*|==|>|>=|<|<=|!=|\(|\)|\[|\]|\#{|})/)
 	    input = "puts "
