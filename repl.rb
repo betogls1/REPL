@@ -9,16 +9,19 @@ while true do
   when /\s*[a-zA-Z]\w*\s*=/ # -- assign
 	    input = input.gsub!(/"/,"\\\"") if input =~ /"/
 	    input_arr=input.split('=')
-	    vars_arr = input_arr[1].split(%r{[()-+/*]})
-	    vars_arr.delete("")
-	    defined = true
+	    vars_arr = input_arr[0].split(%r{[,=]})
+	    vars_arr.delete(" ")
+	    vars = ""
 	    vars_arr.each do |var|
-	      unless var =~ /^\s*(\d+|\\"(\w|\s)*\\")\s*$/ || variables.key?(var)
-	        puts "undefined local variable or method #{var}"
-		defined = false
-	      end
-	    end
-	    variables[input_arr[0].delete(" ")] = input_arr[1] if defined == true
+	      vars = vars_arr[0] == var ? vars << var.delete(" ") : vars << "," << var.delete(" ")
+ 	    end
+	    values_arr = input_arr[1].split(%r{[()-+/*]})
+	    values_arr.delete(" ")
+	    variables[vars] = input_arr[1]
+	    vars=""
+	    variables.each {|x,y| vars << "#{x} = #{y};"}
+	    input.insert(0,vars)
+	    puts `ruby -e "#{vars};puts #{input_arr[1]}"`
 
   when "quit", "exit"
 	    puts "good bye!"
@@ -51,17 +54,17 @@ while true do
 	      puts "removed directory #{dir}"
 	    end
   else
-	input.sub!(/(puts|print)\s*/,"")
-	input_arr = input.split(/(\+|-|\/|\*|==|>|>=|<|<=|!=|\(|\)|\[|\]|\#{|})/)
-	input = "puts "
-	input_arr.each do |element|
-	  element.gsub!(/"/,"\\\"") if element =~ /"/
-	  input <<  element
-	end
-	vars=""
-	variables.each {|x,y| vars << "#{x} = #{y};"}
-	input.insert(0,vars)
-	puts `ruby -e "#{input}"`
+	    input.sub!(/(puts|print)\s*/,"")
+	    input_arr = input.split(/(\+|-|\/|\*|==|>|>=|<|<=|!=|\(|\)|\[|\]|\#{|})/)
+	    input = "puts "
+	    input_arr.each do |element|
+	      element.gsub!(/"/,"\\\"") if element =~ /"/
+	      input <<  element
+	    end
+	    vars=""
+	    variables.each {|x,y| vars << "#{x} = #{y};"}
+	    input.insert(0,vars)
+	    puts `ruby -e "#{input}"`
 
   end 
 end
