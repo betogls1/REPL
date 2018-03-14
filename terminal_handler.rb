@@ -5,23 +5,21 @@ class Terminal_handler
 	def initialize
 #	  @input = ""
 	  @line = 0
-#	  @col = 0#input.length
+	  #@col = 0#input.length
 	  @arrow_keys = []
 	  @cmds = []
-	  $stdout.write "\e[s"
+#	  $stdout.write "\e[s"
 	  @key_pressed = ""
 	end
 	
 	def up_key(input)
-          @col = input.length if input == ""
 	  $stdout.write "\e[200L"
           $stdout.write "\e[u"
           unless  @cmds.nil?
             @line += 1 unless @line == @cmds.length
-#            index = @cmds.length - @line
             input = @line != 0 ? @cmds[@cmds.length - @line] : ""
             $stdout.write input
-            @col = input.length if input == ""
+            @col = input.length #if input == ""
           end
 	  return input
 	end
@@ -35,7 +33,7 @@ class Terminal_handler
             @line -= 1 unless @line == 0
             input = @line != 0 ? @cmds[@cmds.length - @line] : ""
             $stdout.write input
-            @col = input.length if input == ""
+            @col = input.length #if input == ""
           end
 	  return input
 	end
@@ -45,8 +43,8 @@ class Terminal_handler
           @col -= 1 unless @col == 0
 	end
 
-	def right_key
-	  $stdout.write "\e[1C"
+	def right_key(input)
+	  $stdout.write "\e[1C" unless input == ""
           @col += 1 unless @col == 0
 	end
 
@@ -93,9 +91,10 @@ class Terminal_handler
 	end
 
 	def get_input
-	#  $stdout.write "\e[s"
+	  $stdout.write "\e[s"
 	  input = ""
 	  @col = 0
+	#  @line = 0
 	  while true do
 	    STDIN.raw!
 	    @key_pressed = STDIN.getc
@@ -112,7 +111,7 @@ class Terminal_handler
 	      when "\e[D" ## left key
 		left_key
 	      when "\e[C" ## right key
-		right_key
+		right_key(input)
 	      when /\r/   ## RETURN - ENTER
 		input = return_key(input)
 		break
