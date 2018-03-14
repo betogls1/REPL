@@ -1,6 +1,8 @@
 #!/usr/bin/env ruby
 
 require 'io/console'
+require_relative 'terminal_handler'
+=begin
 def get_input(cmds)
 input = ""
 line = 0
@@ -16,22 +18,26 @@ arrow_keys = []
       arrow_keys << key_pressed
     end
     STDIN.cooked!
-#	p "arr: #{arrow_keys}"
     case key_pressed
     when "\e[A" ## up arrow
 	$stdout.write "\e[200L" 
-	$stdout.write "\e[u" 
-	line += 1
-	$stdout.write cmds[cmds.length - line] unless cmds[cmds.length - line].nil?
-	input = cmds[cmds.length - line] unless cmds[cmds.length - line].nil?
-	col = input.length
+	$stdout.write "\e[u"
+	unless  cmds.nil? 
+	  line += 1 unless line == cmds.length
+	  index = cmds.length - line
+	  input = line != 0 ? cmds[cmds.length - line] : ""
+	  $stdout.write input 
+	  col = input.length if input == ""
+	end
     when "\e[B" ## down arrow
 	$stdout.write "\e[200L" 
 	$stdout.write "\e[u" 
-	line -= 1
-	$stdout.write cmds[cmds.length - line] unless cmds[cmds.length - line].nil?
-	input = cmds[cmds.length - line] unless cmds[cmds.length - line].nil?
-	col = input.length
+	unless cmds.nil? 
+	  line -= 1 unless line == 0
+	  input = line != 0 ? cmds[cmds.length - line] : ""
+	  $stdout.write input 
+	  col = input.length if input == ""
+	end
     when "\e[D" ##left arrow
 	$stdout.write "\e[1D"
 	col -= 1 unless col == 0
@@ -40,7 +46,7 @@ arrow_keys = []
 	col += 1 unless col == 0
     when /\r/ ##return
 	#input << cmds[cmds.length - line] unless cmds[cmds.length - line].nil?
-	cmds << input
+	cmds << input if input != ""
 	break
     when "\eOH" ## home
 	$stdout.write "\e[u"
@@ -73,11 +79,14 @@ arrow_keys = []
   return input
 end
 
-variables = {}
 cmds = []
+=end
+variables = {}
+terminal = Terminal_handler.new
+
 while true
   puts "REPL >>"
-  input = get_input(cmds)
+  input = terminal.get_input
   puts ""
   case input
     when /\s*[a-zA-Z]\w*\s*=/ # ------------------ variable declaration
