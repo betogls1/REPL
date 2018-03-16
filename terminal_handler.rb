@@ -3,18 +3,18 @@ require 'io/console'
 
 class Terminal_handler
 	def initialize
-#	  @input = ""
 	  @line = 0
-	  #@col = 0#input.length
 	  @arrow_keys = []
 	  @cmds = []
-#	  $stdout.write "\e[s"
-	  @key_pressed = ""
 	end
-	
-	def up_key(input)
+
+	def clean_line
 	  $stdout.write "\e[200L"
           $stdout.write "\e[u"
+	end
+
+	def up_key(input)
+	  clean_line
           unless  @cmds.nil?
             @line += 1 unless @line == @cmds.length
             input = @line != 0 ? @cmds[@cmds.length - @line] : ""
@@ -27,13 +27,12 @@ class Terminal_handler
 
 	def down_key(input)
           @col = input.length if input == ""
-	  $stdout.write "\e[200L"
-          $stdout.write "\e[u"
+	  clean_line
           unless @cmds.nil?
             @line -= 1 unless @line == 0
             input = @line != 0 ? @cmds[@cmds.length - @line] : ""
             $stdout.write input
-            @col = input.length #if input == ""
+            @col = input.length
           end
 	  return input
 	end
@@ -44,8 +43,10 @@ class Terminal_handler
 	end
 
 	def right_key(input)
-	  $stdout.write "\e[1C" unless input == ""
-          @col += 1 unless @col == 0
+	  if @col < input.length
+	    $stdout.write "\e[1C" 
+            @col += 1 
+	  end
 	end
 
 	def return_key(input)
@@ -66,20 +67,19 @@ class Terminal_handler
 	end
 
 	def backspace_key(input)
-#	  $stdout.write "\e[1D \e[1D"
-          @col = input.length if input == ""
-          @col -= 1 unless @col == 0
-          input[@col] = ''
-          $stdout.write "\e[200L"
-          $stdout.write "\e[u"
-          $stdout.write input
-          $stdout.write "\e[u"
-          $stdout.write "\e[#{@col}C"
+          if @col > 0 
+	    @col -= 1 unless @col == 0
+            input[@col] = ''
+	    clean_line
+            $stdout.write input
+            $stdout.write "\e[u"
+            $stdout.write "\e[#{@col}C"
+	  end
 	  return input
 	end
 
-	def command(input)
-	  input.insert(@col,@key_pressed)
+	def command(input,key_pressed)
+	  input.insert(@col,key_pressed)
           @col += 1
           $stdout.write "\e[u"
           $stdout.write input
@@ -94,16 +94,15 @@ class Terminal_handler
 	  $stdout.write "\e[s"
 	  input = ""
 	  @col = 0
-	#  @line = 0
 	  while true do
 	    STDIN.raw!
-	    @key_pressed = STDIN.getc
-	    if @key_pressed == "\e"
-	      @key_pressed << STDIN.read_nonblock(2) rescue nil 
-	      @arrow_keys << @key_pressed
+	    key_pressed = STDIN.getc
+	    if key_pressed == "\e"
+	      key_pressed << STDIN.read_nonblock(2) rescue nil ##investigate this 
+	      @arrow_keys << key_pressed
 	    end
 	    STDIN.cooked!
-	    case @key_pressed
+	    case key_pressed
 	      when "\e[A" ## up key
 		input = up_key(input)
 	      when "\e[B" ## down key
@@ -123,7 +122,7 @@ class Terminal_handler
 		input = backspace_key(input)
 	      when /^\e(O\w|\[\d)$/ ## special keys
 	      else
-		input = command(input)
+		input = command(input,key_pressed)
 	    end
 	  end
 	  return input	
