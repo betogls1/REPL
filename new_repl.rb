@@ -9,32 +9,34 @@ while true
   input = terminal.get_input
   puts ""
   case input
-    when /\s*[a-zA-Z]\w*\s*=/ # ------------------ variable declaration
+    when /\s*[a-zA-Z]\w*\s*=/ ## ========== variable definition ==========
 	Options.define_var(input)
-    when "quit", "exit" ##========== exit ==========
-	    puts "good bye!"
-            abort
-    when /help/ ##========== help ==========
-	Options.help(input)
-    when "pwd" # --------------------------------- pwd
-            puts Dir.pwd
+    when "quit", "exit"       ## ================= exit ==================
+	Options.exit
+    when "help"               ## ================= help ==================
+	Options.help
+    when "pwd"                ## ================= pwd ===================
+        puts Dir.pwd
 
-    when /^\s*ls\s*$/ # --------------------------------- list files
+    when /^\s*ls\s*$/         ## ============== list files ===============
 	Options.ls
 
-    when /cd/ # -------------------------------- change Dir
+    when /^\s*cd\s(.|\w)+\s*$/## ============== change Dir ===============
 	Options.cd(input)
 
-    when /mkdir/ # ----------------------------  make Dir 
+    when /^\s*mkdir\s\w+\s*$/ ## ============== make Dir ================
 	Options.mkdir(input)
 
-    when /touch/ # ----------------------------  make Dir 
+    when /^\s*touch\s\w+\s*$/ ## ============== create Dir ===============
 	Options.touch(input)
 
-    when /rm/ # ------------------------------ remove Dir
+    when /^\s*rm\s\w+\s*/     ## ============== remove Dir ===============
 	Options.rm(input)
 
-    else
+    when "clear"              ## ============= Clear Screen ===============
+	terminal.clear_screen
+
+    else                      ## =========== execute command =============
 	Options.execute(input)
     end
   

@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 require 'io/console'
 
+
 class Terminal_handler
 	def initialize
 	  @line = 0
@@ -8,18 +9,23 @@ class Terminal_handler
 	  @cmds = []
 	end
 
-	def clean_line
+	def clear_screen
+	  $stdout.write "\e[2J"
+	  $stdout.write "\e[1;1H"	
+	end
+
+	def clear_line
 	  $stdout.write "\e[200L"
           $stdout.write "\e[u"
 	end
 
 	def up_key(input)
-	  clean_line
+	  clear_line
           unless  @cmds.nil?
             @line += 1 unless @line == @cmds.length
             input = @line != 0 ? @cmds[@cmds.length - @line] : ""
             $stdout.write input
-            @col = input.length #if input == ""
+            @col = input.length
           end
 	  return input
 	end
@@ -27,7 +33,7 @@ class Terminal_handler
 
 	def down_key(input)
           @col = input.length if input == ""
-	  clean_line
+	  clear_line
           unless @cmds.nil?
             @line -= 1 unless @line == 0
             input = @line != 0 ? @cmds[@cmds.length - @line] : ""
@@ -70,7 +76,7 @@ class Terminal_handler
           if @col > 0 
 	    @col -= 1 unless @col == 0
             input[@col] = ''
-	    clean_line
+	    clear_line
             $stdout.write input
             $stdout.write "\e[u"
             $stdout.write "\e[#{@col}C"
@@ -103,13 +109,13 @@ class Terminal_handler
 	    end
 	    STDIN.cooked!
 	    case key_pressed
-	      when "\e[A" ## up key
+	      when "\e[A","\eOA" ## up key
 		input = up_key(input)
-	      when "\e[B" ## down key
+	      when "\e[B", "\eOB" ## down key
 		input = down_key(input)
-	      when "\e[D" ## left key
+	      when "\e[D", "\eOD" ## left key
 		left_key
-	      when "\e[C" ## right key
+	      when "\e[C", "\eOC" ## right key
 		right_key(input)
 	      when /\r/   ## RETURN - ENTER
 		input = return_key(input)

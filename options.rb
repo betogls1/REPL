@@ -1,7 +1,19 @@
 #!/usr/bin/env ruby
+require 'tco'
+
 
 module Options
-	  @variables = {}
+	@variables = {}
+
+
+	def self.color(output)
+	  puts output.fg("#02a552")
+	end
+
+	def self.exit
+	  color("good bye!")
+	  abort
+	end
 
 	def self.define_var(input)
 	    input.sub!(/(puts|print)\s*/,"")
@@ -10,15 +22,14 @@ module Options
             vars_arr = input_arr[0].split(%r{[,=]})
             vars_arr.delete(" ")
             vars = ""
-            vars_arr.each do |var|
-              vars = vars_arr[0] == var ? vars << var.delete(" ") : vars << "," << var.delete(" ")
-            end
+            vars_arr.each { |var| vars = vars_arr[0] == var ? vars << var.delete(" ") : vars << "," << var.delete(" ") }
             values_arr = input_arr[1].split(%r{[()-+/*]})
             values_arr.delete(" ")
             @variables[vars] = input_arr[1]
             vars=""
             @variables.each {|x,y| vars << "#{x} = #{y};"}
-            puts ">> " + `ruby -e "#{vars}puts #{input_arr[1]}"`
+            print ">> "
+	    color(`ruby -e "#{vars}puts #{input_arr[1]}"`)
 	end
 
 	def self.execute(input)
@@ -31,41 +42,32 @@ module Options
             end
             vars=""
             @variables.each {|x,y| vars << "#{x} = #{y};"}
-            puts ">> " + `ruby -e "#{vars}puts #{input}"`
+	    print ">> "
+            color(`ruby -e "#{vars}puts #{input}"`)
 	end
 
-	def self.help(input)
-	    input=input.split(" ")
-            case input[1]
-              when "touch"
-                puts "    r  - read only. The file must exist"
-                puts "    w  - Create an empty file for writing"
-                puts "    a  - Append to a file.The file is created if it does not exist."
-                puts "    r+ - Open a file for update both reading and writing. The file must exist."
-                puts "    w+ - Create an empty file for both reading and writing."
-                puts "    a+ - Open a file for reading and appending. The file is created if it does not exist."
-              else
-                puts "Usage: "
+	def self.help
+                puts "Usage: ".fg("#02a552")
                 puts " "
-                puts "    - pwd                           current directory"
-                puts "    - ls                            list files"
-                puts "    - cd    <dir_name>              change directory"
-                puts "    - mkdir <dir_name>              create directory"
-                puts "    - rm    <dir_name>              remove directory"
-                puts "    - touch <file_name> <option>    create file"
-                puts "    - help  <cmd>                   print help page"
-            end
+                puts "    - clear                         Clear Screen".fg("#02a552")
+                puts "    - pwd                           current directory".fg("#02a552")
+                puts "    - ls                            list files".fg("#02a552")
+                puts "    - cd    <dir_name>              change directory".fg("#02a552")
+                puts "    - mkdir <dir_name>              create directory".fg("#02a552")
+                puts "    - rm    <dir_name>              remove directory".fg("#02a552")
+                puts "    - touch <file_name> <option (w - by default)>    create file".fg("#02a552")
+                puts "    - help  <cmd>                   print help page".fg("#02a552")
 	end
 
 	def self.ls
 	    files=Dir.entries(Dir.pwd)
-            files.each {|file| puts "  "+file}
+            files.each {|file| color("  "+file)}
 	end
 
 	def self.cd(input)
 	    input=input.split(" ")
             Dir.chdir(input[-1])
-            puts "#{Dir.pwd}"
+            color("#{Dir.pwd}")
 	end
 
 	def self.mkdir(input)
@@ -73,23 +75,22 @@ module Options
             input.shift
             input.each do |dir|
               Dir.mkdir(dir)
-              puts "directory #{dir} created"
+              color("directory #{dir} created")
             end
 	end
 
 	def self.touch(input)
 	    input=input.split(" ")
-            input.shift
-            File.open(input[0],input[1])
-            puts "file #{input[0]} created"
+	    File.write(input[1],"w")
+            color("file #{input[1]} created")
 	end
 
 	def self.rm(input)
 	    input=input.split(" ")
             input.shift
-            input.each do |dir|
-              Dir.delete(dir)
-              puts "removed directory #{dir}"
+            input.each do |element|
+		File.directory?(element) ?  Dir.delete(element) : File.delete(element)
+              color("#{element} removed")
             end
 	end
 
