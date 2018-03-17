@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'io/console'
+require 'tco'
 
 
 class Terminal_handler
@@ -23,8 +24,8 @@ class Terminal_handler
 	  clear_line
           unless  @cmds.nil?
             @line += 1 unless @line == @cmds.length
-            input = @line != 0 ? @cmds[@cmds.length - @line] : ""
-            $stdout.write input
+            input = @cmds[@cmds.length - @line] 
+	    color(input) 
             @col = input.length
           end
 	  return input
@@ -36,11 +37,12 @@ class Terminal_handler
 	  clear_line
           unless @cmds.nil?
             @line -= 1 unless @line == 0
-            input = @line != 0 ? @cmds[@cmds.length - @line] : ""
-            $stdout.write input
-            @col = input.length
+            last_input = @line != 0 ? @cmds[@cmds.length - @line] : @last_input
+#            $stdout.write input
+	    color(last_input)
+            @col = last_input.length
           end
-	  return input
+	  return last_input
 	end
 
 	def left_key
@@ -74,21 +76,48 @@ class Terminal_handler
 
 	def backspace_key(input)
           if @col > 0 
-	    @col -= 1 unless @col == 0
+	    @col -= 1
             input[@col] = ''
 	    clear_line
-            $stdout.write input
+	    color(input)
             $stdout.write "\e[u"
             $stdout.write "\e[#{@col}C"
+	  else
+            $stdout.write "\e[u"
 	  end
 	  return input
+	end
+
+	def color(input)
+	  input.each_char do |key_pressed|
+	    if key_pressed == "\"" && @color_flag == false
+              $stdout.write key_pressed.fg("#f37f5a")
+              @color_flag = true
+            elsif key_pressed == "\"" && @color_flag == true
+              $stdout.write key_pressed.fg("#f37f5a")
+              @color_flag = false
+            elsif @color_flag == true
+              $stdout.write key_pressed.fg("#f37f5a")
+            else 
+              $stdout.write key_pressed.fg("#00aaea")
+            end
+	  end
 	end
 
 	def command(input,key_pressed)
 	  input.insert(@col,key_pressed)
           @col += 1
-          $stdout.write "\e[u"
-          $stdout.write input
+	    if key_pressed == "\"" && @color_flag == false
+              $stdout.write key_pressed.fg("#f37f5a")
+              @color_flag = true
+            elsif key_pressed == "\"" && @color_flag == true
+              $stdout.write key_pressed.fg("#f37f5a")
+              @color_flag = false
+            elsif @color_flag == true
+              $stdout.write key_pressed.fg("#f37f5a")
+            else 
+              $stdout.write key_pressed.fg("#00aaea")
+	    end
           if @arrow_keys[-1] == "\e[D" || @arrow_keys[-1] == "\e[C"
             $stdout.write "\e[u"
             $stdout.write "\e[#{@col}C"
@@ -99,6 +128,8 @@ class Terminal_handler
 	def get_input
 	  $stdout.write "\e[s"
 	  input = ""
+	  @last_input = ""
+	  @color_flag = false
 	  @col = 0
 	  while true do
 	    STDIN.raw!
@@ -129,6 +160,7 @@ class Terminal_handler
 	      when /^\e(O\w|\[\d)$/ ## special keys
 	      else
 		input = command(input,key_pressed)
+	        @last_input = input
 	    end
 	  end
 	  return input	
